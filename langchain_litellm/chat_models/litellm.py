@@ -104,13 +104,12 @@ def _convert_dict_to_message(_dict: Mapping[str, Any]) -> BaseMessage:
 
         if _dict.get("tool_calls"):
             additional_kwargs["tool_calls"] = _dict["tool_calls"]
-        
+
         if _dict.get("reasoning_content"):
-            additional_kwargs["reasoning_content"]=_dict["reasoning_content"]
+            additional_kwargs["reasoning_content"] = _dict["reasoning_content"]
 
         return AIMessage(content=content, additional_kwargs=additional_kwargs)
     elif role == "system":
-
         return SystemMessage(content=_dict["content"])
     elif role == "function":
         return FunctionMessage(content=_dict["content"], name=_dict["name"])
@@ -152,7 +151,7 @@ def _convert_delta_to_message_chunk(
         function_call = delta.function_call
         raw_tool_calls = delta.tool_calls
         reasoning_content = getattr(delta, "reasoning_content", None)
-    
+
     if function_call:
         additional_kwargs = {"function_call": dict(function_call)}
     # The hasattr check is necessary because litellm explicitly deletes the
@@ -170,8 +169,12 @@ def _convert_delta_to_message_chunk(
         try:
             tool_call_chunks = [
                 ToolCallChunk(
-                    name=rtc["function"]["name"] if isinstance(rtc, dict) else rtc.function.name,
-                    args=rtc["function"]["arguments"] if isinstance(rtc, dict) else rtc.function.arguments,
+                    name=rtc["function"]["name"]
+                    if isinstance(rtc, dict)
+                    else rtc.function.name,
+                    args=rtc["function"]["arguments"]
+                    if isinstance(rtc, dict)
+                    else rtc.function.arguments,
                     id=rtc["id"] if isinstance(rtc, dict) else rtc.id,
                     index=rtc["index"] if isinstance(rtc, dict) else rtc.index,
                 )
@@ -197,9 +200,7 @@ def _convert_delta_to_message_chunk(
         else:
             func_args = delta.function_call.arguments if function_call else ""
             func_name = delta.function_call.name if function_call else ""
-        return FunctionMessageChunk(
-            content=func_args, name=func_name
-        )
+        return FunctionMessageChunk(content=func_args, name=func_name)
     elif role or default_class == ChatMessageChunk:
         return ChatMessageChunk(content=content, role=role)  # type: ignore[arg-type]
     else:
@@ -247,7 +248,9 @@ def _convert_message_to_dict(message: BaseMessage) -> dict:
         message_dict["name"] = message.additional_kwargs["name"]
     return message_dict
 
+
 _OPENAI_MODELS = get_valid_models(custom_llm_provider="openai")
+
 
 class ChatLiteLLM(BaseChatModel):
     """Chat model that uses the LiteLLM API."""
